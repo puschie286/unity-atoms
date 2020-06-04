@@ -1,0 +1,51 @@
+.event-list {
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+.event-entry {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    color: black;
+}
+
+.event-entry > .unity-button,
+.event-entry > .unity-text-element,
+.event-listener-entry > .unity-button {
+    max-width: 150px;
+    -unity-text-align: middle-left;
+}
+
+/*
+.normal-width {
+
+}
+*/
+
+.event-info {
+}
+
+.event-caller {
+}
+
+.event-listener {
+}
+
+.event-info-panel {
+    flex-direction: column;
+    flex-wrap: nowrap;
+}
+
+.event-listener-entry {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+
+    color: black;
+}
+
+.event-info-panel > .unity-scroll-view {
+    max-height: 88px;
+}

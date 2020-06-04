@@ -1,0 +1,9 @@
+<UXML xmlns="UnityEngine.UIElements">
+    <!-- TODO: option for prevent log cleaning on enter play -->
+    <!-- TODO: button for clearing log -->
+    <!-- TODO: search toolbar -->
+    <ScrollView>
+        <VisualElement name="EventList" class="event-list">
+        </VisualElement>
+    </ScrollView>
+</UXML>

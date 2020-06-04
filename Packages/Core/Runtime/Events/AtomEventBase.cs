@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityAtoms
@@ -14,6 +13,11 @@ namespace UnityAtoms
         /// Event without value.
         /// </summary>
         public event Action OnEventNoValue;
+
+#if UNITY_EDITOR
+        public bool EnableDebugTracking = true;
+        public EventDebugBreak DebugTrigger = EventDebugBreak.NoBreak;
+#endif
 
         public virtual void Raise()
         {

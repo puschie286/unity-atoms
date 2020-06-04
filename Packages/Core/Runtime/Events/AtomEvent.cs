@@ -1,7 +1,10 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
+using Debug = UnityEngine.Debug;
+using UnityEditor;
 
 namespace UnityAtoms
 {
@@ -12,6 +15,15 @@ namespace UnityAtoms
     [EditorIcon("atom-icon-cherry")]
     public class AtomEvent<T> : AtomEventBase
     {
+        static AtomEvent()
+        {
+            TrackerHelper.EventTypes.Add( typeof( T ) );
+        }
+
+        public static event Action<EventTrackData<T>> OnRaiseValue;
+
+        private readonly List<IAtomListener<T>> Listeners = new List<IAtomListener<T>>();
+
         public T InspectorRaiseValue { get => _inspectorRaiseValue; }
 
         /// <summary>
@@ -26,7 +38,7 @@ namespace UnityAtoms
         protected event Action<T> _onEvent;
 
         /// <summary>
-        /// The event replays the specified number of old values to new subscribers. Works like a ReplaySubject in Rx. 
+        /// The event replays the specified number of old values to new subscribers. Works like a ReplaySubject in Rx.
         /// </summary>
         [SerializeField]
         [Range(0, 10)]
@@ -61,9 +73,12 @@ namespace UnityAtoms
         /// <param name="item">The value associated with the Event.</param>
         public void Raise(T item)
         {
+            DebugTrackEvent(item);
+            HandleDebuggingBefore();
             base.Raise();
             _onEvent?.Invoke(item);
             AddToReplayBuffer(item);
+            HandleDebuggingAfter();
         }
 
         /// <summary>
@@ -97,6 +112,7 @@ namespace UnityAtoms
         public void UnregisterAll()
         {
             _onEvent = null;
+            Listeners.Clear();
         }
 
         /// <summary>
@@ -110,6 +126,7 @@ namespace UnityAtoms
             {
                 ReplayBufferToSubscriber(listener.OnEventRaised);
             }
+            Listeners.Add( listener );
         }
 
         /// <summary>
@@ -119,6 +136,7 @@ namespace UnityAtoms
         public void UnregisterListener(IAtomListener<T> listener)
         {
             _onEvent -= listener.OnEventRaised;
+            Listeners.Remove( listener );
         }
 
         #region Observable
@@ -158,6 +176,61 @@ namespace UnityAtoms
                     enumerator.Dispose();
                 }
             }
+        }
+
+        private void DebugTrackEvent(T item)
+        {
+            // is enabled ?
+            if( !EnableDebugTracking )
+            {
+                return;
+            }
+
+            // create track parameters
+            EventTrackData<T> Parameter = new EventTrackData<T>
+            {
+                Timestamp = DateTime.Now,
+                CallerTrace = new StackTrace( 2 ),
+                Listeners = new List<IAtomListener<T>>( Listeners ),
+                Value = item,
+                EventPath = AssetDatabase.GetAssetPath( GetInstanceID() ),
+                EventType = GetType()
+            };
+
+            // send to tracker
+            OnRaiseValue?.Invoke( Parameter );
+        }
+
+        private void HandleDebuggingBefore()
+        {
+            if( DebugTrigger != EventDebugBreak.BreakBeforeRaise &&
+                DebugTrigger != EventDebugBreak.BreakBeforeRaiseOnce )
+            {
+                return;
+            }
+
+            if( DebugTrigger == EventDebugBreak.BreakBeforeRaiseOnce )
+            {
+                DebugTrigger = EventDebugBreak.NoBreak;
+            }
+
+            Debug.Break();
+        }
+
+        private void HandleDebuggingAfter()
+        {
+            if( DebugTrigger != EventDebugBreak.BreakAfterRaise &&
+                DebugTrigger != EventDebugBreak.BreakAfterRaiseOnce )
+            {
+                return;
+            }
+
+            if( DebugTrigger == EventDebugBreak.BreakAfterRaiseOnce )
+            {
+                DebugTrigger = EventDebugBreak.NoBreak;
+            }
+
+            Debug.Break();
         }
     }
 }
