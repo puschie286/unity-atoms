@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using UnityEngine;
 using Debug = UnityEngine.Debug;
-using UnityEditor;
+#if UNITY_EDITOR
+    using UnityEditor;
+#endif
 
 namespace UnityAtoms
 {
@@ -15,6 +17,7 @@ namespace UnityAtoms
     [EditorIcon("atom-icon-cherry")]
     public class AtomEvent<T> : AtomEventBase
     {
+#if UNITY_EDITOR
         static AtomEvent()
         {
             TrackerHelper.EventTypes.Add( typeof( T ) );
@@ -23,7 +26,7 @@ namespace UnityAtoms
         public static event Action<EventTrackData<T>> OnRaiseValue;
 
         private readonly List<IAtomListener<T>> Listeners = new List<IAtomListener<T>>();
-
+#endif
         public T InspectorRaiseValue { get => _inspectorRaiseValue; }
 
         /// <summary>
@@ -73,12 +76,16 @@ namespace UnityAtoms
         /// <param name="item">The value associated with the Event.</param>
         public void Raise(T item)
         {
+#if UNITY_EDITOR
             DebugTrackEvent(item);
             HandleDebuggingBefore();
+#endif
             base.Raise();
             _onEvent?.Invoke(item);
             AddToReplayBuffer(item);
+#if UNITY_EDITOR
             HandleDebuggingAfter();
+#endif
         }
 
         /// <summary>
@@ -112,7 +119,9 @@ namespace UnityAtoms
         public void UnregisterAll()
         {
             _onEvent = null;
+#if UNITY_EDITOR
             Listeners.Clear();
+#endif
         }
 
         /// <summary>
@@ -126,7 +135,9 @@ namespace UnityAtoms
             {
                 ReplayBufferToSubscriber(listener.OnEventRaised);
             }
+ #if UNITY_EDITOR
             Listeners.Add( listener );
+#endif
         }
 
         /// <summary>
@@ -136,7 +147,9 @@ namespace UnityAtoms
         public void UnregisterListener(IAtomListener<T> listener)
         {
             _onEvent -= listener.OnEventRaised;
+#if UNITY_EDITOR
             Listeners.Remove( listener );
+#endif
         }
 
         #region Observable
@@ -178,6 +191,7 @@ namespace UnityAtoms
             }
         }
 
+#if UNITY_EDITOR
         private void DebugTrackEvent(T item)
         {
             // is enabled ?
@@ -232,5 +246,6 @@ namespace UnityAtoms
 
             Debug.Break();
         }
+#endif
     }
 }
