@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -16,7 +15,6 @@ namespace UnityAtoms.Editor
         }
 
         private static readonly List<EventTrackData> EventTracks = new List<EventTrackData>();
-        private static event Action<EventTrackData> OnNewEntry;
 
         private VisualElement EventListRoot;
         private VisualElement InfoPanel;
@@ -40,46 +38,8 @@ namespace UnityAtoms.Editor
 
         private static void RegisterWatcher()
         {
-            // iterate through all registered generic AtomEvent types
-            foreach( Type EventType in TrackerHelper.EventTypes )
-            {
-                // generate closed type ( event, helper )
-                Type SpecificEventType = typeof( AtomEvent<> ).MakeGenericType( EventType );
-                Type DelegatorType = typeof( EventDelegator<> ).MakeGenericType( EventType );
-
-                // get event info
-                EventInfo EventInfo = SpecificEventType.GetEvent( "OnRaiseValue" );
-
-                // create dummy instance ( event, helper )
-                object EventInstance = Activator.CreateInstance( SpecificEventType );
-                object Delegator = Activator.CreateInstance( DelegatorType );
-
-                // get delegate info
-                MethodInfo DelegateMethod = DelegatorType.GetMethod( "Trigger" );
-
-                if( DelegateMethod == null )
-                {
-                    Debug.LogError( "Failed to register on delegate for type " + EventType.Name );
-                    continue;
-                }
-
-                // get delegate reference
-                Delegate DelegateReference = Delegate.CreateDelegate( EventInfo.EventHandlerType, Delegator, DelegateMethod );
-
-                // register event handler
-                EventInfo.AddEventHandler( EventInstance, DelegateReference );
-            }
-        }
-
-        public static void OnEventValueRaised<T>( EventTrackData<T> Parameters )
-        {
-            AddEntry( EventTrackData.NormalizeGeneric( Parameters ) );
-        }
-
-        private static void AddEntry( EventTrackData Entry )
-        {
-            EventTracks.Add( Entry );
-            OnNewEntry?.Invoke( Entry );
+            // add event to list
+            EventWatcher.RaiseTriggered += EventTracks.Add;
         }
 
         private void OnEnable()
@@ -117,18 +77,13 @@ namespace UnityAtoms.Editor
         private void RegisterLiveTracking()
         {
             // register on tracking
-            OnNewEntry += LiveTracking;
+            EventWatcher.RaiseTriggered += CreateEntry;
         }
 
         private void UnregisterLiveTracking()
         {
             // unregister on tracking
-            OnNewEntry -= LiveTracking;
-        }
-
-        private void LiveTracking( EventTrackData NewEntry )
-        {
-            CreateEntry( NewEntry );
+            EventWatcher.RaiseTriggered -= CreateEntry;
         }
 
         /**
@@ -252,7 +207,7 @@ namespace UnityAtoms.Editor
         private VisualElement CreateListenerInfo( EventTrackData Info )
         {
             // show text info if no data available
-            if( Info.Listener.Count == 0 )
+            if( Info.Listener == null || Info.Listener.Count == 0 )
             {
                 return new TextElement
                 {

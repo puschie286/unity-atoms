@@ -14,10 +14,10 @@ namespace UnityAtoms
         /// </summary>
         public event Action OnEventNoValue;
 
-#if UNITY_EDITOR
+        #region DEBUG OPTIONS
         public bool EnableDebugTracking = true;
         public EventDebugBreak DebugTrigger = EventDebugBreak.NoBreak;
-#endif
+        #endregion
 
         public virtual void Raise()
         {

@@ -1,12 +1,7 @@
 using System;
 using System.Linq;
 using System.Collections.Generic;
-using System.Diagnostics;
 using UnityEngine;
-using Debug = UnityEngine.Debug;
-#if UNITY_EDITOR
-    using UnityEditor;
-#endif
 
 namespace UnityAtoms
 {
@@ -17,16 +12,23 @@ namespace UnityAtoms
     [EditorIcon("atom-icon-cherry")]
     public class AtomEvent<T> : AtomEventBase
     {
-#if UNITY_EDITOR
+        private static EventWatcher Watcher = null;
+
         static AtomEvent()
         {
-            TrackerHelper.EventTypes.Add( typeof( T ) );
+            // skip debug setup outside of editor
+            if( !Application.isEditor )
+            {
+                return;
+            }
+
+            // create debug interface instance
+            if( Watcher == null )
+            {
+                Watcher = new EventWatcher();
+            }
         }
 
-        public static event Action<EventTrackData<T>> OnRaiseValue;
-
-        private readonly List<IAtomListener<T>> Listeners = new List<IAtomListener<T>>();
-#endif
         public T InspectorRaiseValue { get => _inspectorRaiseValue; }
 
         /// <summary>
@@ -76,17 +78,15 @@ namespace UnityAtoms
         /// <param name="item">The value associated with the Event.</param>
         public void Raise(T item)
         {
-#if UNITY_EDITOR
-            DebugTrackEvent(item);
-            HandleDebuggingBefore();
-#endif
+            Watcher?.RaisePreCall( this, item );
+
             base.Raise();
             _onEvent?.Invoke(item);
             AddToReplayBuffer(item);
-#if UNITY_EDITOR
-            HandleDebuggingAfter();
-#endif
+
+            Watcher?.RaiseAfterCall( this );
         }
+
 
         /// <summary>
         /// Used in editor scipts since Raise is ambigious when using reflection to get method.
@@ -119,9 +119,8 @@ namespace UnityAtoms
         public void UnregisterAll()
         {
             _onEvent = null;
-#if UNITY_EDITOR
-            Listeners.Clear();
-#endif
+
+            Watcher?.ListenerUnregisterAll( this );
         }
 
         /// <summary>
@@ -135,9 +134,8 @@ namespace UnityAtoms
             {
                 ReplayBufferToSubscriber(listener.OnEventRaised);
             }
- #if UNITY_EDITOR
-            Listeners.Add( listener );
-#endif
+
+            Watcher?.ListenerRegistered( this, listener );
         }
 
         /// <summary>
@@ -147,9 +145,8 @@ namespace UnityAtoms
         public void UnregisterListener(IAtomListener<T> listener)
         {
             _onEvent -= listener.OnEventRaised;
-#if UNITY_EDITOR
-            Listeners.Remove( listener );
-#endif
+
+            Watcher?.ListenerUnregister( this, listener );
         }
 
         #region Observable
@@ -190,62 +187,5 @@ namespace UnityAtoms
                 }
             }
         }
-
-#if UNITY_EDITOR
-        private void DebugTrackEvent(T item)
-        {
-            // is enabled ?
-            if( !EnableDebugTracking )
-            {
-                return;
-            }
-
-            // create track parameters
-            EventTrackData<T> Parameter = new EventTrackData<T>
-            {
-                Timestamp = DateTime.Now,
-                CallerTrace = new StackTrace( 2 ),
-                Listeners = new List<IAtomListener<T>>( Listeners ),
-                Value = item,
-                EventPath = AssetDatabase.GetAssetPath( GetInstanceID() ),
-                EventType = GetType()
-            };
-
-            // send to tracker
-            OnRaiseValue?.Invoke( Parameter );
-        }
-
-        private void HandleDebuggingBefore()
-        {
-            if( DebugTrigger != EventDebugBreak.BreakBeforeRaise &&
-                DebugTrigger != EventDebugBreak.BreakBeforeRaiseOnce )
-            {
-                return;
-            }
-
-            if( DebugTrigger == EventDebugBreak.BreakBeforeRaiseOnce )
-            {
-                DebugTrigger = EventDebugBreak.NoBreak;
-            }
-
-            Debug.Break();
-        }
-
-        private void HandleDebuggingAfter()
-        {
-            if( DebugTrigger != EventDebugBreak.BreakAfterRaise &&
-                DebugTrigger != EventDebugBreak.BreakAfterRaiseOnce )
-            {
-                return;
-            }
-
-            if( DebugTrigger == EventDebugBreak.BreakAfterRaiseOnce )
-            {
-                DebugTrigger = EventDebugBreak.NoBreak;
-            }
-
-            Debug.Break();
-        }
-#endif
     }
 }
