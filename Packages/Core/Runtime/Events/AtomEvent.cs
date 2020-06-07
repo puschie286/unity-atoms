@@ -12,23 +12,6 @@ namespace UnityAtoms
     [EditorIcon("atom-icon-cherry")]
     public class AtomEvent<T> : AtomEventBase
     {
-        private static EventWatcher Watcher = null;
-
-        static AtomEvent()
-        {
-            // skip debug setup outside of editor
-            if( !Application.isEditor )
-            {
-                return;
-            }
-
-            // create debug interface instance
-            if( Watcher == null )
-            {
-                Watcher = new EventWatcher();
-            }
-        }
-
         public T InspectorRaiseValue { get => _inspectorRaiseValue; }
 
         /// <summary>

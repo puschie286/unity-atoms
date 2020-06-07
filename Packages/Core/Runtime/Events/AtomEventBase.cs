@@ -14,14 +14,38 @@ namespace UnityAtoms
         /// </summary>
         public event Action OnEventNoValue;
 
-        #region DEBUG OPTIONS
+        #region DEBUGGING
+
         public bool EnableDebugTracking = true;
         public EventDebugBreak DebugTrigger = EventDebugBreak.NoBreak;
+
+        // watcher for trigger
+        protected static EventWatcher Watcher = null;
+
+        protected AtomEventBase()
+        {
+            // skip debug setup outside of editor
+            if( !Application.isEditor )
+            {
+                return;
+            }
+
+            // create debug interface instance
+            if( Watcher == null )
+            {
+                Watcher = new EventWatcher();
+            }
+        }
+
         #endregion
 
         public virtual void Raise()
         {
+            Watcher?.RaisePreCall( this );
+
             OnEventNoValue?.Invoke();
+
+            Watcher?.RaiseAfterCallBase( this );
         }
 
         /// <summary>

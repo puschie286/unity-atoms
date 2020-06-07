@@ -10,9 +10,26 @@ namespace UnityAtoms
     public class EventWatcher
     {
         private readonly Dictionary<Type, List<MonoBehaviour>> EventListeners = new Dictionary<Type, List<MonoBehaviour>>();
+        private readonly Void NoValue = new Void();
 
         // callback events
         public static event Action<EventTrackData> RaiseTriggered;
+
+        public void RaisePreCall( AtomEventBase caller )
+        {
+            // skip base calls from derived types
+            if( IsGenericCaller( caller ) )
+            {
+                return;
+            }
+
+            if( caller.EnableDebugTracking )
+            {
+                TrackEvent( caller, NoValue );
+            }
+
+            DebugBefore( caller );
+        }
 
         public void RaisePreCall<T>( AtomEventBase caller, T value )
         {
@@ -22,6 +39,16 @@ namespace UnityAtoms
             }
 
             DebugBefore( caller );
+        }
+
+        public void RaiseAfterCallBase( AtomEventBase caller )
+        {
+            if( IsGenericCaller( caller ) )
+            {
+                return;
+            }
+
+            DebugAfter( caller );
         }
 
         public void RaiseAfterCall( AtomEventBase caller )
@@ -41,17 +68,7 @@ namespace UnityAtoms
                 return;
             }
 
-            // get index
-            Type ID = caller.GetType();
-
-            // has list ?
-            if( !EventListeners.ContainsKey( ID ) )
-            {
-                EventListeners.Add( ID, new List<MonoBehaviour>() );
-            }
-
-            // add listener
-            EventListeners[ID].Add( ListenerBase );
+            AddListener( caller, ListenerBase );
         }
 
         public void ListenerUnregister<T>( AtomEventBase caller, IAtomListener<T> listener )
@@ -66,18 +83,7 @@ namespace UnityAtoms
                 return;
             }
 
-            // get index
-            Type ID = caller.GetType();
-
-            // has list ?
-            if( !EventListeners.ContainsKey( ID ) )
-            {
-                Debug.LogWarning( "[Watcher] Listener is not registered" );
-                return;
-            }
-
-            // remove
-            EventListeners[ID].Remove( ListenerBase );
+            RemoveListener( caller, ListenerBase );
         }
 
         public void ListenerUnregisterAll( AtomEventBase caller )
@@ -94,6 +100,37 @@ namespace UnityAtoms
 
             // clear
             EventListeners[ID].Clear();
+        }
+
+        private void AddListener( AtomEventBase caller, MonoBehaviour listener )
+        {
+            // get index
+            Type ID = caller.GetType();
+
+            // has list ?
+            if( !EventListeners.ContainsKey( ID ) )
+            {
+                EventListeners.Add( ID, new List<MonoBehaviour>() );
+            }
+
+            // add listener
+            EventListeners[ID].Add( listener );
+        }
+
+        private void RemoveListener( AtomEventBase caller, MonoBehaviour listener )
+        {
+            // get index
+            Type ID = caller.GetType();
+
+            // has list ?
+            if( !EventListeners.ContainsKey( ID ) )
+            {
+                Debug.LogWarning( "[Watcher] Listener is not registered" );
+                return;
+            }
+
+            // remove
+            EventListeners[ID].Remove( listener );
         }
 
         private void TrackEvent<T>( AtomEventBase caller, T value )
@@ -145,6 +182,11 @@ namespace UnityAtoms
 
             // stop
             Debug.Break();
+        }
+
+        private bool IsGenericCaller( AtomEventBase caller )
+        {
+            return caller.GetType().IsSubclassOf( typeof( AtomEvent<> ) );
         }
     }
 }
