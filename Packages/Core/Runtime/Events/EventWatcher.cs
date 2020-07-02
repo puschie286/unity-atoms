@@ -186,7 +186,7 @@ namespace UnityAtoms
 
         private bool IsGenericCaller( AtomEventBase caller )
         {
-            return caller.GetType().IsSubclassOf( typeof( AtomEvent<> ) );
+            return caller.GetType().IsSubclassOf( typeof( AtomEventBase ) );
         }
     }
 }
