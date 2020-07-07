@@ -1,6 +1,5 @@
 namespace UnityAtoms
 {
-#if UNITY_EDITOR
     public enum EventDebugBreak
     {
         NoBreak,
@@ -9,5 +8,4 @@ namespace UnityAtoms
         BreakAfterRaise,
         BreakAfterRaiseOnce
     }
-#endif
 }
