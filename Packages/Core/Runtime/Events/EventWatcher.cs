@@ -135,6 +135,7 @@ namespace UnityAtoms
 
         private void TrackEvent<T>( AtomEventBase caller, T value )
         {
+#if UNITY_EDITOR
             EventTrackData Data = new EventTrackData
             {
                 Timestamp = DateTime.Now,
@@ -145,6 +146,7 @@ namespace UnityAtoms
                 Listener = EventListeners.ContainsKey( caller.GetType() ) ? EventListeners[caller.GetType()] : null,
             };
             RaiseTriggered?.Invoke( Data );
+#endif 
         }
 
         private void DebugBefore( AtomEventBase caller )
