@@ -124,7 +124,7 @@ namespace UnityAtoms.Editor
             List<AtomEventBase> InstanceList = new List<AtomEventBase>();
 
             // find all scriptable objects of type
-            string[] InstanceGuidArray = AssetDatabase.FindAssets( "t:" + TargetClass.Name );
+            string[] InstanceGuidArray = AssetDatabase.FindAssets( "t:" + Target.Name );
 
             foreach( string InstanceGuid in InstanceGuidArray )
             {
