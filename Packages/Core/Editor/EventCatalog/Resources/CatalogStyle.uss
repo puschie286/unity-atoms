@@ -1,0 +1,25 @@
+.event-container {
+    flex-direction: row;
+}
+
+.event-list {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.event-entry {
+    flex-direction: row;
+    -unity-text-align: middle-left;
+}
+
+.event-info {
+    flex-direction: column;
+}
+
+.no-width {
+    -unity-text-align: middle-left;
+}
+
+.event-info > .unity-box > .unity-label {
+    white-space: normal;
+}

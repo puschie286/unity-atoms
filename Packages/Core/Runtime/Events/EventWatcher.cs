@@ -25,7 +25,7 @@ namespace UnityAtoms
 
             if( caller.EnableDebugTracking )
             {
-                TrackEvent( caller, NoValue );
+                Dispatcher.Invoke( () => TrackEvent( caller, NoValue ) );
             }
 
             DebugBefore( caller );
@@ -35,7 +35,7 @@ namespace UnityAtoms
         {
             if( caller.EnableDebugTracking )
             {
-                TrackEvent( caller, value );
+                Dispatcher.Invoke( () => TrackEvent( caller, value ) );
             }
 
             DebugBefore( caller );
@@ -146,7 +146,7 @@ namespace UnityAtoms
                 Listener = EventListeners.ContainsKey( caller.GetType() ) ? EventListeners[caller.GetType()] : null,
             };
             RaiseTriggered?.Invoke( Data );
-#endif 
+#endif
         }
 
         private void DebugBefore( AtomEventBase caller )

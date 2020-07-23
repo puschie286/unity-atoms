@@ -212,9 +212,8 @@ namespace UnityAtoms.Editor
                 return new TextElement
                 {
                     text = "no Listeners"
-                };;
+                };
             }
-
 
             // create element
             Button EventListenerInfo = new Button
