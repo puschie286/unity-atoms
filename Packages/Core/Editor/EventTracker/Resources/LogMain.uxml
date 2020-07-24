@@ -1,9 +1,11 @@
-<UXML xmlns="UnityEngine.UIElements">
+<UXML xmlns="UnityEngine.UIElements" xmlns:UnityEditor="UnityEditor.UIElements">
+    <UnityEditor:Toolbar class="toolbar">
+        <UnityEditor:ToolbarToggle name="AutoScrollToggle" text="Auto Scroll" value="true" />
+        <UnityEditor:ToolbarButton name="ClearButton" text="Clear Log" />
+    </UnityEditor:Toolbar>
     <!-- TODO: option for prevent log cleaning on enter play -->
-    <!-- TODO: button for clearing log -->
     <!-- TODO: search toolbar -->
-    <ScrollView>
-        <VisualElement name="EventList" class="event-list">
-        </VisualElement>
+    <ScrollView class="event-scroll">
+        <VisualElement name="EventList" class="event-list" />
     </ScrollView>
 </UXML>

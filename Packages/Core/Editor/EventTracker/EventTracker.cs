@@ -1,6 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using Unity.EditorCoroutines.Editor;
 using UnityEditor;
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -16,11 +19,13 @@ namespace UnityAtoms.Editor
 
         private static readonly List<EventTrackData> EventTracks = new List<EventTrackData>();
 
+        private ScrollView Scroll;
         private VisualElement EventListRoot;
         private VisualElement InfoPanel;
         private DateTime InfoPanelTime;
         private InfoType InfoPanelType;
 
+        private bool AutoScrollEnabled = true;
 
         [MenuItem( "Tools/Unity Atoms/Event Tracker _%#T" )]
         public static void ShowWindow()
@@ -58,6 +63,17 @@ namespace UnityAtoms.Editor
             // get container
             EventListRoot = Root.Query( "EventList" ).First();
 
+            // register toolbar
+            ToolbarToggle Toggle = Root.Query<ToolbarToggle>( "AutoScrollToggle" );
+            Toggle.RegisterCallback<ChangeEvent<bool>>( OnAutoScrollToggle, TrickleDown.TrickleDown );
+
+            // register clear button
+            ToolbarButton ClearButton = Root.Query<ToolbarButton>( "ClearButton" );
+            ClearButton.clickable.clicked += OnClearClicked;
+
+            // get scroll view
+            Scroll = (ScrollView)EventListRoot.parent;
+
             // fill with track entries
             foreach( EventTrackData Track in EventTracks )
             {
@@ -66,6 +82,16 @@ namespace UnityAtoms.Editor
 
             // track new events
             RegisterLiveTracking();
+        }
+
+        private void OnAutoScrollToggle( ChangeEvent<bool> Value )
+        {
+            AutoScrollEnabled = Value.newValue;
+        }
+
+        private void OnClearClicked()
+        {
+            EventListRoot.Clear();
         }
 
         private void OnDisable()
@@ -115,6 +141,19 @@ namespace UnityAtoms.Editor
 
             // add to root container
             EventListRoot.Add( EntryContainer );
+
+            // scroll down if enabled
+            if( AutoScrollEnabled )
+            {
+                // scroll on next frame ( required data for scrolling is missing right after creation )
+                EditorCoroutineUtility.StartCoroutine( ScrollToNewElement( EntryContainer ), this );
+            }
+        }
+
+        private IEnumerator ScrollToNewElement( VisualElement Target )
+        {
+            Scroll.ScrollTo( Target );
+            yield return null;
         }
 
         private VisualElement CreateTimeInfo( EventTrackData Info )

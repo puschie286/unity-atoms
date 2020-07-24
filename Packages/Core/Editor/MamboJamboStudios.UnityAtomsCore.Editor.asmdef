@@ -1,7 +1,8 @@
 {
     "name": "MamboJamboStudios.UnityAtomsCore.Editor",
     "references": [
-        "MamboJamboStudios.UnityAtomsCore.Runtime"
+        "MamboJamboStudios.UnityAtomsCore.Runtime",
+        "Unity.EditorCoroutines.Editor"
     ],
     "optionalUnityReferences": [],
     "includePlatforms": [

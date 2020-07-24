@@ -3,6 +3,14 @@
     flex-wrap: nowrap;
 }
 
+.event-scroll {
+    flex-grow: 1;
+    flex-shrink: 0;
+    align-self: flex-start;
+    width: 100%;
+    height: 100%;
+}
+
 .event-entry {
     flex-direction: row;
     flex-wrap: nowrap;
@@ -18,11 +26,16 @@
     -unity-text-align: middle-left;
 }
 
-/*
-.normal-width {
-
+.toolbar {
+    flex-grow: 1;
+    flex-shrink: 0;
+    align-items: flex-start;
+    height: auto;
 }
-*/
+
+.normal-width {
+    height: 16px;
+}
 
 .event-info {
 }

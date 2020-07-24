@@ -22,5 +22,8 @@
     "/Editor/MamboJamboStudios.UnityAtomsCore.Editor.asmdef.meta",
     "/Documentation",
     "/Documentation.meta"
-  ]
+  ],
+  "dependencies": {
+    "com.unity.editorcoroutines": "1.0.0"
+  }
 }

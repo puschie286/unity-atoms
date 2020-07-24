@@ -67,8 +67,6 @@ namespace UnityAtoms
 
         private void OnDestroy()
         {
-            DestroyImmediate( this );
-
             Instance = null;
         }
 
