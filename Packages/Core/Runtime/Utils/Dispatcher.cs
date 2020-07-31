@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -9,22 +11,35 @@ namespace UnityAtoms
     public class Dispatcher : MonoBehaviour
     {
         private static Thread UnityThread = null;
-        private static object LockObject = new object();
+        private static readonly object LockObject = new object();
         private static readonly Queue<Action> Actions = new Queue<Action>();
         private static Dispatcher Instance = null;
+
+        [InitializeOnEnterPlayMode]
+        private static void EditorInit()
+        {
+            // do we already exist ?
+            Dispatcher ComponentInstance = FindObjectOfType<Dispatcher>();
+            if( ComponentInstance != null )
+            {
+                return;
+            }
+
+            Debug.LogError( "[Dispatcher] Please create an dispatcher object" );
+        }
 
         private void Awake()
         {
             UnityThread = Thread.CurrentThread;
 
             // remove old object if exist
-            if( Instance != null )
+            if( Instance != null && Instance != this )
             {
                 DestroyImmediate( Instance );
             }
 
-            // store pre-created instance
-            Instance = this;
+            // make sure to keep between scene switching
+            DontDestroyOnLoad( this );
         }
 
         public static bool IsUnityThread()
@@ -34,9 +49,35 @@ namespace UnityAtoms
             return Thread.CurrentThread == UnityThread;
         }
 
+        public IEnumerator DelayedInvoke( Action action )
+        {
+            yield return new WaitUntil( () => UnityThread != null );
+            Invoke( action );
+        }
+
+        private static void PreInit()
+        {
+            if( Instance != null ) return;
+
+            Instance = FindObjectOfType<Dispatcher>();
+
+            if( Instance == null )
+            {
+                Debug.LogError( "[Dispatcher] Cant find instance" );
+                throw new Exception("Failed to find Dispatcher instance");
+            }
+        }
+
         public static void Invoke( Action action )
         {
-            EnsureExistence();
+            // delay call if we haven't initialized
+            if( UnityThread == null )
+            {
+                PreInit();
+                // delay invoke call
+                Instance.StartCoroutine( Instance.DelayedInvoke( action ) );
+                return;
+            }
 
             // execute if we on main thread
             if( IsUnityThread() )
@@ -63,26 +104,6 @@ namespace UnityAtoms
                     Actions.Dequeue()();
                 }
             }
-        }
-
-        private void OnDestroy()
-        {
-            Instance = null;
-        }
-
-        private static void EnsureExistence()
-        {
-            // do we already exist ?
-            if( Instance != null )
-            {
-                return;
-            }
-
-            // create instance if not exist
-            Instance = new GameObject("Dispatcher" ).AddComponent<Dispatcher>();
-
-            // keep instance alive
-            DontDestroyOnLoad( Instance.gameObject );
         }
     }
 }

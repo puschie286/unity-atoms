@@ -64,6 +64,9 @@ namespace UnityAtoms.Editor
             // list of event instances
             List<AtomEventBase> EventObjectList = GetScriptableObjectList( TargetClass );
 
+            // Sort by name
+            EventObjectList.Sort( ( EventA, EventB ) => string.Compare( EventA.name, EventB.name, StringComparison.Ordinal ) );
+
             foreach( AtomEventBase EventObject in EventObjectList )
             {
                 // create entry
@@ -81,6 +84,9 @@ namespace UnityAtoms.Editor
 
             // list of valid event classes
             List<Type> EventClassList = GetEventClassList();
+
+            // Sort by name
+            EventClassList.Sort( ( EventA, EventB ) => string.Compare( EventA.Name, EventB.Name, StringComparison.Ordinal ) );
 
             foreach( Type EventClass in EventClassList )
             {

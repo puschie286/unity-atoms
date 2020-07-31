@@ -89,13 +89,7 @@ namespace UnityAtoms
         public virtual void OnAfterDeserialize()
         {
             // Clear all delegates when exiting play mode
-            if (OnEventNoValue != null)
-            {
-                foreach (var d in OnEventNoValue.GetInvocationList())
-                {
-                    OnEventNoValue -= (Action)d;
-                }
-            }
+            OnEventNoValue = null;
         }
 
     }
