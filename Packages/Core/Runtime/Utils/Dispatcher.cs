@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
-using UnityEditor;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -14,19 +13,6 @@ namespace UnityAtoms
         private static readonly object LockObject = new object();
         private static readonly Queue<Action> Actions = new Queue<Action>();
         private static Dispatcher Instance = null;
-
-        [InitializeOnEnterPlayMode]
-        private static void EditorInit()
-        {
-            // do we already exist ?
-            Dispatcher ComponentInstance = FindObjectOfType<Dispatcher>();
-            if( ComponentInstance != null )
-            {
-                return;
-            }
-
-            Debug.LogError( "[Dispatcher] Please create an dispatcher object" );
-        }
 
         private void Awake()
         {
