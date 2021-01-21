@@ -136,11 +136,12 @@ namespace UnityAtoms
         private void TrackEvent<T>( AtomEventBase caller, T value )
         {
 #if UNITY_EDITOR
+            if( ReferenceEquals( caller, null ) ) return;
             EventTrackData Data = new EventTrackData
             {
                 Timestamp = DateTime.Now,
                 CallerTrace = new StackTrace( 2 ),
-                Value = value.ToString(),
+                Value = value == null ? "null" : value.ToString(),
                 EventType = caller.GetType(),
                 EventPath = AssetDatabase.GetAssetPath( caller.GetInstanceID() ),
                 Listener = EventListeners.ContainsKey( caller.GetType() ) ? EventListeners[caller.GetType()] : null,
